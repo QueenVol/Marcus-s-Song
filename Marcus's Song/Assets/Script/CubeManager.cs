@@ -13,6 +13,7 @@ public class CubeManager : MonoBehaviour
     public AudioSource backgroundMusic;
     public AudioSource loseSound;
     public AudioSource winSound;
+    public bool minesGenerated = false;
 
     [HideInInspector] public List<CellFace> faces = new List<CellFace>();
     private Dictionary<Vector3Int, List<CellFace>> faceMap = new Dictionary<Vector3Int, List<CellFace>>();
@@ -20,8 +21,6 @@ public class CubeManager : MonoBehaviour
     void Start()
     {
         GenerateCubeFaces();
-        PlaceSurfaceMines();
-        CalculateAdjacentNumbers();
     }
 
     void GenerateCubeFaces()
@@ -70,18 +69,27 @@ public class CubeManager : MonoBehaviour
         faceMap[coord].Add(cf);
     }
 
-    void PlaceSurfaceMines()
+    public void GenerateMinesExcept(CellFace firstClicked)
     {
-        List<CellFace> allFaces = new List<CellFace>(faces);
-        int placed = 0;
+        List<CellFace> available = new List<CellFace>(faces);
 
-        while (placed < mineCount && allFaces.Count > 0)
+        List<CellFace> forbidden = GetNeighborFaces(firstClicked);
+        forbidden.Add(firstClicked);
+
+        foreach (CellFace f in forbidden)
+            available.Remove(f);
+
+        int placed = 0;
+        while (placed < mineCount && available.Count > 0)
         {
-            int index = Random.Range(0, allFaces.Count);
-            allFaces[index].isMine = true;
-            allFaces.RemoveAt(index);
+            int index = Random.Range(0, available.Count);
+            available[index].isMine = true;
+            available.RemoveAt(index);
             placed++;
         }
+
+        minesGenerated = true;
+        CalculateAdjacentNumbers();
     }
 
     void CalculateAdjacentNumbers()

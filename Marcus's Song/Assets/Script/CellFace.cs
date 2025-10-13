@@ -51,29 +51,31 @@ public class CellFace : MonoBehaviour
         if (isRevealed || isFlagged) return;
         isRevealed = true;
 
+        if (!cubeManager.minesGenerated)
+        {
+            cubeManager.GenerateMinesExcept(this);
+        }
+
         if (isMine)
         {
             rend.material.color = Color.red;
             text.text = "[  ]";
             text.color = Color.black;
-
             cubeManager.GameOver(false);
             return;
         }
-        else
+
+        rend.material.color = Color.white;
+        text.text = adjacentMines > 0 ? adjacentMines.ToString() : "";
+        text.color = GetNumberColor(adjacentMines);
+
+        cubeManager.CheckWin();
+
+        if (adjacentMines == 0)
         {
-            rend.material.color = Color.white;
-            text.text = adjacentMines > 0 ? adjacentMines.ToString() : "";
-            text.color = GetNumberColor(adjacentMines);
-
-            cubeManager.CheckWin();
-
-            if (adjacentMines == 0)
-            {
-                foreach (CellFace neighbor in cubeManager.GetNeighborFaces(this))
-                    if (!neighbor.isRevealed && !neighbor.isMine)
-                        neighbor.Reveal();
-            }
+            foreach (CellFace neighbor in cubeManager.GetNeighborFaces(this))
+                if (!neighbor.isRevealed && !neighbor.isMine)
+                    neighbor.Reveal();
         }
     }
 

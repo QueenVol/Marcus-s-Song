@@ -1,4 +1,4 @@
-using System.Collections;
+锘縰sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,8 @@ public class CubeManager : MonoBehaviour
     public int mineCount = 100;
     public GameObject facePrefab;
     public Transform cubeParent;
+    public GameObject endPanel;
+    public TMPro.TextMeshProUGUI resultText;
 
     [HideInInspector] public List<CellFace> faces = new List<CellFace>();
     private Dictionary<Vector3Int, List<CellFace>> faceMap = new Dictionary<Vector3Int, List<CellFace>>();
@@ -77,8 +79,6 @@ public class CubeManager : MonoBehaviour
             allFaces.RemoveAt(index);
             placed++;
         }
-
-        Debug.Log($"放置完成：{placed} 个雷");
     }
 
     void CalculateAdjacentNumbers()
@@ -101,9 +101,9 @@ public class CubeManager : MonoBehaviour
         List<CellFace> neighbors = new List<CellFace>();
         Vector3Int c = face.coordinates;
         Vector3 nInt = Vector3Int.RoundToInt(face.normalDir);
-        Vector3 n = nInt; // as Vector3 for math
-        float edgeThreshold = 1.06f;   // 边的距离阈值（微调可改）
-        float cornerThreshold = 1.50f; // 角的距离阈值（微调可改）
+        Vector3 n = nInt;
+        float edgeThreshold = 1.06f;
+        float cornerThreshold = 1.50f;
 
         foreach (CellFace other in faces)
         {
@@ -114,47 +114,34 @@ public class CubeManager : MonoBehaviour
             Vector3 diff = other.transform.position - face.transform.position;
             float dist = diff.magnitude;
 
-            // 1) 同一面：法线一致，并且在同一平面内（平面内偏移不为0且每轴偏移在 [-1,1]）
             if (otherNInt == nInt)
             {
                 Vector3Int offset = other.coordinates - c;
-                // 确保在平面内（offset 与法线的点积为 0）
                 if (Vector3.Dot(offset, n) == 0)
                 {
-                    // 只取平面内相邻格（3x3 去中间）
                     int ax = Mathf.Abs(offset.x);
                     int ay = Mathf.Abs(offset.y);
                     int az = Mathf.Abs(offset.z);
-                    // 在平面内时，只有两个轴会有非0值，取 max<=1 且非全0
                     if (Mathf.Max(ax, Mathf.Max(ay, az)) == 1)
                         neighbors.Add(other);
                 }
                 continue;
             }
 
-            // 2) 跨面：只考虑与当前面垂直的面（排除对面和平行面）
             if (Mathf.Approximately(Vector3.Dot(n, otherN), 0f))
             {
-                // 排除“对面”的那一类（比如 n 与 otherN 朝向相反时 dot==0 不会发生，但这里保留判断）
-                // 通过距离判断是边还是角：边更近，角更远
                 if (dist <= edgeThreshold)
                 {
-                    // 共享边（或紧邻的跨面格） -> 包含
                     neighbors.Add(other);
                 }
                 else if (dist <= cornerThreshold)
                 {
-                    // 可能是共享角的那个跨面格 -> 也包含
                     neighbors.Add(other);
                 }
-                // 超过 cornerThreshold 的不当邻居都忽略
                 continue;
             }
-
-            // 3) 其它情况（例如对面或非常远的格子）都忽略
         }
 
-        // 去重并返回
         HashSet<CellFace> unique = new HashSet<CellFace>(neighbors);
         return new List<CellFace>(unique);
     }
@@ -206,5 +193,37 @@ public class CubeManager : MonoBehaviour
         }
 
         return offsets;
+    }
+
+    public void CheckWin()
+    {
+        foreach (CellFace f in faces)
+        {
+            if (!f.isMine && !f.isRevealed)
+                return;
+        }
+
+        GameOver(true);
+    }
+
+    public void GameOver(bool win)
+    {
+        foreach (CellFace f in faces)
+        {
+            if (f.isMine && !f.isRevealed)
+            {
+                f.text.text = "[  ]";
+                f.rend.material.color = Color.red;
+            }
+        }
+
+        endPanel.SetActive(true);
+        resultText.text = win ? "You Win" : "Kaboom!";
+    }
+
+    public void RestartGame()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 }

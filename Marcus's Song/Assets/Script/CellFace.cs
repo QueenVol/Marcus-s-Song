@@ -12,7 +12,7 @@ public class CellFace : MonoBehaviour
     public bool isFlagged = false;
     public int adjacentMines = 0;
 
-    private Renderer rend;
+    public Renderer rend;
     public TextMeshPro text;
 
     private CubeManager cubeManager;
@@ -22,7 +22,6 @@ public class CellFace : MonoBehaviour
         rend = GetComponent<Renderer>();
         cubeManager = FindObjectOfType<CubeManager>();
 
-        // 设置文字位置和旋转
         text.transform.SetParent(null);
         text.transform.position = transform.position + normalDir * 0.05f;
         SetTextRotation();
@@ -55,14 +54,19 @@ public class CellFace : MonoBehaviour
         if (isMine)
         {
             rend.material.color = Color.red;
-            text.text = "💣";
+            text.text = "[  ]";
             text.color = Color.black;
+
+            cubeManager.GameOver(false);
+            return;
         }
         else
         {
             rend.material.color = Color.white;
             text.text = adjacentMines > 0 ? adjacentMines.ToString() : "";
             text.color = GetNumberColor(adjacentMines);
+
+            cubeManager.CheckWin();
 
             if (adjacentMines == 0)
             {

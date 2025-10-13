@@ -11,6 +11,8 @@ public class CubeManager : MonoBehaviour
     public GameObject endPanel;
     public TMPro.TextMeshProUGUI resultText;
     public AudioSource backgroundMusic;
+    public AudioSource loseSound;
+    public AudioSource winSound;
 
     [HideInInspector] public List<CellFace> faces = new List<CellFace>();
     private Dictionary<Vector3Int, List<CellFace>> faceMap = new Dictionary<Vector3Int, List<CellFace>>();
@@ -220,6 +222,14 @@ public class CubeManager : MonoBehaviour
 
         endPanel.SetActive(true);
         backgroundMusic.Stop();
+        if (win)
+        {
+            winSound.Play();
+        }
+        else
+        {
+            loseSound.Play();
+        }
         resultText.text = win ? "You Win" : "Kaboom!";
     }
 

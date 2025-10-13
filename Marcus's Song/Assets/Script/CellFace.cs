@@ -84,6 +84,8 @@ public class CellFace : MonoBehaviour
         if (isRevealed) return;
         isFlagged = !isFlagged;
         rend.material.color = isFlagged ? Color.yellow : Color.gray;
+
+        cubeManager.AdjustMineCount(isFlagged);
     }
 
     Color GetNumberColor(int n)

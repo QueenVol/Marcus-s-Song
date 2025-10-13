@@ -14,6 +14,8 @@ public class CubeManager : MonoBehaviour
     public AudioSource loseSound;
     public AudioSource winSound;
     public bool minesGenerated = false;
+    public TMPro.TextMeshProUGUI mineCountText;
+    private int remainingMines;
 
     [HideInInspector] public List<CellFace> faces = new List<CellFace>();
     private Dictionary<Vector3Int, List<CellFace>> faceMap = new Dictionary<Vector3Int, List<CellFace>>();
@@ -21,6 +23,8 @@ public class CubeManager : MonoBehaviour
     void Start()
     {
         GenerateCubeFaces();
+        remainingMines = mineCount;
+        UpdateMineCounter();
     }
 
     void GenerateCubeFaces()
@@ -245,5 +249,18 @@ public class CubeManager : MonoBehaviour
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    public void UpdateMineCounter()
+    {
+        if (mineCountText != null)
+            mineCountText.text = $"Mines: {remainingMines}";
+    }
+
+    public void AdjustMineCount(bool flagged)
+    {
+        if (flagged) remainingMines--;
+        else remainingMines++;
+        UpdateMineCounter();
     }
 }

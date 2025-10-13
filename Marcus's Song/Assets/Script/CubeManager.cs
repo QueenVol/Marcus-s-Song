@@ -100,88 +100,61 @@ public class CubeManager : MonoBehaviour
     {
         List<CellFace> neighbors = new List<CellFace>();
         Vector3Int c = face.coordinates;
-        Vector3Int n = Vector3Int.RoundToInt(face.normalDir);
+        Vector3 nInt = Vector3Int.RoundToInt(face.normalDir);
+        Vector3 n = nInt; // as Vector3 for math
+        float edgeThreshold = 1.06f;   // 边的距离阈值（微调可改）
+        float cornerThreshold = 1.50f; // 角的距离阈值（微调可改）
 
-        // ----------- 第 1 步：同面 8 邻居 -----------
-        for (int dx = -1; dx <= 1; dx++)
-            for (int dy = -1; dy <= 1; dy++)
-                for (int dz = -1; dz <= 1; dz++)
-                {
-                    Vector3Int offset = new Vector3Int(dx, dy, dz);
-                    if (offset == Vector3Int.zero) continue;
-                    if (Vector3.Dot(offset, n) != 0) continue; // 必须在同一平面内
-
-                    Vector3Int neighborCoord = c + offset;
-                    if (!faceMap.ContainsKey(neighborCoord)) continue;
-
-                    foreach (CellFace other in faceMap[neighborCoord])
-                        if (other.normalDir == n)
-                            neighbors.Add(other);
-                }
-
-        // ----------- 第 2 步：检测是否在边或角上 -----------
-        int s = size - 1;
-        bool onXEdge = (c.x == 0 || c.x == s);
-        bool onYEdge = (c.y == 0 || c.y == s);
-        bool onZEdge = (c.z == 0 || c.z == s);
-
-        int edgeCount = (onXEdge ? 1 : 0) + (onYEdge ? 1 : 0) + (onZEdge ? 1 : 0);
-
-        // ----------- 第 3 步：如果是边或角，添加相邻面的邻居 -----------
-        // 共享边 → 与另一面的法线不同
-        if (edgeCount >= 2) // 在角上（同时接触3个面）
+        foreach (CellFace other in faces)
         {
-            // 检查所有法线方向的组合
-            foreach (Vector3Int dir in new Vector3Int[]
-            {
-            Vector3Int.right, Vector3Int.left,
-            Vector3Int.up, Vector3Int.down,
-            Vector3Int.forward, Vector3Int.back
-            })
-            {
-                if (Vector3.Dot(dir, n) != 0) continue; // 排除自己和对面
+            if (other == face) continue;
 
-                Vector3Int neighborCoord = c + dir; // 共享边或角方向
-                if (!faceMap.ContainsKey(neighborCoord)) continue;
+            Vector3Int otherNInt = Vector3Int.RoundToInt(other.normalDir);
+            Vector3 otherN = otherNInt;
+            Vector3 diff = other.transform.position - face.transform.position;
+            float dist = diff.magnitude;
 
-                foreach (CellFace other in faceMap[neighborCoord])
+            // 1) 同一面：法线一致，并且在同一平面内（平面内偏移不为0且每轴偏移在 [-1,1]）
+            if (otherNInt == nInt)
+            {
+                Vector3Int offset = other.coordinates - c;
+                // 确保在平面内（offset 与法线的点积为 0）
+                if (Vector3.Dot(offset, n) == 0)
                 {
-                    if (Vector3.Dot(other.normalDir, n) < 0) continue; // 排除对面
+                    // 只取平面内相邻格（3x3 去中间）
+                    int ax = Mathf.Abs(offset.x);
+                    int ay = Mathf.Abs(offset.y);
+                    int az = Mathf.Abs(offset.z);
+                    // 在平面内时，只有两个轴会有非0值，取 max<=1 且非全0
+                    if (Mathf.Max(ax, Mathf.Max(ay, az)) == 1)
+                        neighbors.Add(other);
+                }
+                continue;
+            }
+
+            // 2) 跨面：只考虑与当前面垂直的面（排除对面和平行面）
+            if (Mathf.Approximately(Vector3.Dot(n, otherN), 0f))
+            {
+                // 排除“对面”的那一类（比如 n 与 otherN 朝向相反时 dot==0 不会发生，但这里保留判断）
+                // 通过距离判断是边还是角：边更近，角更远
+                if (dist <= edgeThreshold)
+                {
+                    // 共享边（或紧邻的跨面格） -> 包含
                     neighbors.Add(other);
                 }
-            }
-        }
-        else if (edgeCount == 2) // 在边上
-        {
-            // 找出与当前面垂直的那一维
-            List<Vector3Int> dirs = new List<Vector3Int>();
-
-            if (!onXEdge) dirs.Add(Vector3Int.right);
-            if (!onYEdge) dirs.Add(Vector3Int.up);
-            if (!onZEdge) dirs.Add(Vector3Int.forward);
-
-            // 只对在边上的两个方向添加跨面连接
-            foreach (Vector3Int dir in new Vector3Int[]
-            {
-            Vector3Int.right, Vector3Int.left,
-            Vector3Int.up, Vector3Int.down,
-            Vector3Int.forward, Vector3Int.back
-            })
-            {
-                if (Vector3.Dot(dir, n) != 0) continue;
-
-                Vector3Int neighborCoord = c + dir;
-                if (!faceMap.ContainsKey(neighborCoord)) continue;
-
-                foreach (CellFace other in faceMap[neighborCoord])
+                else if (dist <= cornerThreshold)
                 {
-                    if (Vector3.Dot(other.normalDir, n) < 0) continue;
+                    // 可能是共享角的那个跨面格 -> 也包含
                     neighbors.Add(other);
                 }
+                // 超过 cornerThreshold 的不当邻居都忽略
+                continue;
             }
+
+            // 3) 其它情况（例如对面或非常远的格子）都忽略
         }
 
-        // ----------- 第 4 步：去重 -----------
+        // 去重并返回
         HashSet<CellFace> unique = new HashSet<CellFace>(neighbors);
         return new List<CellFace>(unique);
     }

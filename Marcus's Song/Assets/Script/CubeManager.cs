@@ -98,38 +98,87 @@ public class CubeManager : MonoBehaviour
 
     public List<CellFace> GetNeighborFaces(CellFace face)
     {
-        List<CellFace> result = new List<CellFace>();
+        List<CellFace> neighbors = new List<CellFace>();
         Vector3Int c = face.coordinates;
+        Vector3Int n = Vector3Int.RoundToInt(face.normalDir);
 
-        List<Vector3Int> offsets = new List<Vector3Int>();
-
-        if (face.normalDir == Vector3.up)
-        {
-            for (int dx = -1; dx <= 1; dx++)
+        // 同面 8 个格子
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
                 for (int dz = -1; dz <= 1; dz++)
                 {
-                    if (dx == 0 && dz == 0) continue;
-                    offsets.Add(new Vector3Int(dx, 0, dz));
-                }
-            if (c.x == 0) offsets.AddRange(new Vector3Int[] { new Vector3Int(-1, 0, -1), new Vector3Int(-1, 0, 0), new Vector3Int(-1, 0, 1) });
-            if (c.x == size - 1) offsets.AddRange(new Vector3Int[] { new Vector3Int(1, 0, -1), new Vector3Int(1, 0, 0), new Vector3Int(1, 0, 1) });
-            if (c.z == 0) offsets.AddRange(new Vector3Int[] { new Vector3Int(-1, 0, -1), new Vector3Int(0, 0, -1), new Vector3Int(1, 0, -1) });
-            if (c.z == size - 1) offsets.AddRange(new Vector3Int[] { new Vector3Int(-1, 0, 1), new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 1) });
-        }
+                    Vector3Int offset = new Vector3Int(dx, dy, dz);
+                    if (offset == Vector3Int.zero) continue;
+                    if (Vector3.Dot(offset, n) != 0) continue; // 只在平面内
 
-        foreach (Vector3Int off in offsets)
+                    Vector3Int neighborCoord = c + offset;
+                    if (!faceMap.ContainsKey(neighborCoord)) continue;
+
+                    foreach (CellFace other in faceMap[neighborCoord])
+                        if (other.normalDir == face.normalDir)
+                            neighbors.Add(other);
+                }
+
+        // 边角额外检测
+        foreach (Vector3Int offset in GetEdgeCornerOffsets(face))
         {
-            Vector3Int neighborCoord = c + off;
-            if (faceMap.ContainsKey(neighborCoord))
-            {
-                foreach (CellFace other in faceMap[neighborCoord])
-                {
-                    if (other.normalDir == face.normalDir)
-                        result.Add(other);
-                }
-            }
+            Vector3Int neighborCoord = c + offset;
+            if (!faceMap.ContainsKey(neighborCoord)) continue;
+
+            foreach (CellFace other in faceMap[neighborCoord])
+                if (Vector3.Dot(other.normalDir, n) >= 0) // 排除对面
+                    neighbors.Add(other);
         }
 
-        return result;
+        return neighbors;
+    }
+
+    private List<Vector3Int> GetEdgeCornerOffsets(CellFace face)
+    {
+        List<Vector3Int> offsets = new List<Vector3Int>();
+        int x = face.coordinates.x;
+        int y = face.coordinates.y;
+        int z = face.coordinates.z;
+        int s = size - 1;
+        Vector3Int n = Vector3Int.RoundToInt(face.normalDir);
+
+        if (n == Vector3Int.up || n == Vector3Int.down)
+        {
+            if (x == 0) offsets.Add(new Vector3Int(-1, 0, 0));
+            if (x == s) offsets.Add(new Vector3Int(1, 0, 0));
+            if (z == 0) offsets.Add(new Vector3Int(0, 0, -1));
+            if (z == s) offsets.Add(new Vector3Int(0, 0, 1));
+
+            if (x == 0 && z == 0) offsets.Add(new Vector3Int(-1, 0, -1));
+            if (x == 0 && z == s) offsets.Add(new Vector3Int(-1, 0, 1));
+            if (x == s && z == 0) offsets.Add(new Vector3Int(1, 0, -1));
+            if (x == s && z == s) offsets.Add(new Vector3Int(1, 0, 1));
+        }
+        else if (n == Vector3Int.left || n == Vector3Int.right)
+        {
+            if (y == 0) offsets.Add(new Vector3Int(0, -1, 0));
+            if (y == s) offsets.Add(new Vector3Int(0, 1, 0));
+            if (z == 0) offsets.Add(new Vector3Int(0, 0, -1));
+            if (z == s) offsets.Add(new Vector3Int(0, 0, 1));
+
+            if (y == 0 && z == 0) offsets.Add(new Vector3Int(0, -1, -1));
+            if (y == 0 && z == s) offsets.Add(new Vector3Int(0, -1, 1));
+            if (y == s && z == 0) offsets.Add(new Vector3Int(0, 1, -1));
+            if (y == s && z == s) offsets.Add(new Vector3Int(0, 1, 1));
+        }
+        else if (n == Vector3Int.forward || n == Vector3Int.back)
+        {
+            if (x == 0) offsets.Add(new Vector3Int(-1, 0, 0));
+            if (x == s) offsets.Add(new Vector3Int(1, 0, 0));
+            if (y == 0) offsets.Add(new Vector3Int(0, -1, 0));
+            if (y == s) offsets.Add(new Vector3Int(0, 1, 0));
+
+            if (x == 0 && y == 0) offsets.Add(new Vector3Int(-1, -1, 0));
+            if (x == 0 && y == s) offsets.Add(new Vector3Int(-1, 1, 0));
+            if (x == s && y == 0) offsets.Add(new Vector3Int(1, -1, 0));
+            if (x == s && y == s) offsets.Add(new Vector3Int(1, 1, 0));
+        }
+
+        return offsets;
     }
 }

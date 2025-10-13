@@ -22,32 +22,29 @@ public class CellFace : MonoBehaviour
         rend = GetComponent<Renderer>();
         cubeManager = FindObjectOfType<CubeManager>();
 
-        text.transform.localPosition = normalDir * 0.51f;
-        text.transform.localRotation = Quaternion.identity;
-
-        if (normalDir == Vector3.up)
-            text.transform.Rotate(90, 0, 0);
-        else if (normalDir == Vector3.down)
-            text.transform.Rotate(-90, 0, 0);
-        else if (normalDir == Vector3.left)
-            text.transform.Rotate(0, 90, 0);
-        else if (normalDir == Vector3.right)
-            text.transform.Rotate(0, -90, 0);
-        else if (normalDir == Vector3.forward)
-            text.transform.Rotate(0, 180, 0);
-        else if (normalDir == Vector3.back)
-            text.transform.Rotate(0, 0, 0);
+        // 设置文字位置和旋转
+        text.transform.SetParent(null);
+        text.transform.position = transform.position + normalDir * 0.05f;
+        SetTextRotation();
 
         rend.material.color = Color.gray;
         text.text = "";
     }
 
+    void SetTextRotation()
+    {
+        if (normalDir == Vector3.up) text.transform.rotation = Quaternion.Euler(90, 0, 0);
+        else if (normalDir == Vector3.down) text.transform.rotation = Quaternion.Euler(-90, 0, 0);
+        else if (normalDir == Vector3.left) text.transform.rotation = Quaternion.Euler(0, 90, 0);
+        else if (normalDir == Vector3.right) text.transform.rotation = Quaternion.Euler(0, -90, 0);
+        else if (normalDir == Vector3.forward) text.transform.rotation = Quaternion.Euler(0, 180, 0);
+        else if (normalDir == Vector3.back) text.transform.rotation = Quaternion.Euler(0, 0, 0);
+    }
+
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(0))
-            Reveal();
-        else if (Input.GetMouseButtonDown(1))
-            ToggleFlag();
+        if (Input.GetMouseButtonDown(0)) Reveal();
+        else if (Input.GetMouseButtonDown(1)) ToggleFlag();
     }
 
     public void Reveal()
@@ -68,7 +65,11 @@ public class CellFace : MonoBehaviour
             text.color = GetNumberColor(adjacentMines);
 
             if (adjacentMines == 0)
-                AutoRevealNeighbors();
+            {
+                foreach (CellFace neighbor in cubeManager.GetNeighborFaces(this))
+                    if (!neighbor.isRevealed && !neighbor.isMine)
+                        neighbor.Reveal();
+            }
         }
     }
 
@@ -77,15 +78,6 @@ public class CellFace : MonoBehaviour
         if (isRevealed) return;
         isFlagged = !isFlagged;
         rend.material.color = isFlagged ? Color.yellow : Color.gray;
-    }
-
-    void AutoRevealNeighbors()
-    {
-        foreach (CellFace neighbor in cubeManager.GetNeighborFaces(this))
-        {
-            if (!neighbor.isRevealed && !neighbor.isMine)
-                neighbor.Reveal();
-        }
     }
 
     Color GetNumberColor(int n)

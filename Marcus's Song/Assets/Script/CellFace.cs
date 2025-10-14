@@ -28,9 +28,16 @@ public class CellFace : MonoBehaviour
 
         rend.material.color = Color.gray;
         text.text = "";
+        text.transform.SetParent(null);
     }
 
-    void SetTextRotation()
+    public void RefreshTextTransform()
+    {
+        text.transform.position = transform.position + normalDir * 0.05f;
+        SetTextRotation();
+    }
+
+    public void SetTextRotation()
     {
         if (normalDir == Vector3.up) text.transform.rotation = Quaternion.Euler(90, 0, 0);
         else if (normalDir == Vector3.down) text.transform.rotation = Quaternion.Euler(-90, 0, 0);
@@ -86,9 +93,12 @@ public class CellFace : MonoBehaviour
         rend.material.color = isFlagged ? Color.yellow : Color.gray;
 
         cubeManager.AdjustMineCount(isFlagged);
+
+        if (isFlagged)
+            cubeManager.RotateRandomLayer();
     }
 
-    Color GetNumberColor(int n)
+    public Color GetNumberColor(int n)
     {
         switch (n)
         {

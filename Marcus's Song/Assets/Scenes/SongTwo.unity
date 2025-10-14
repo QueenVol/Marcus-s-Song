@@ -234,7 +234,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 125800112}
-  - component: {fileID: 125800111}
+  - component: {fileID: 125800116}
   - component: {fileID: 125800113}
   - component: {fileID: 125800115}
   - component: {fileID: 125800114}
@@ -245,31 +245,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &125800111
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 125800110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac99a277f72c77e42a3628666b6bd9fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  size: 9
-  mineCount: 100
-  facePrefab: {fileID: 8425874369860984711, guid: e9b0da8d7217309429057c6525fb91f5, type: 3}
-  cubeParent: {fileID: 0}
-  endPanel: {fileID: 1363469025}
-  resultText: {fileID: 476813961}
-  backgroundMusic: {fileID: 125800113}
-  loseSound: {fileID: 125800115}
-  winSound: {fileID: 125800114}
-  minesGenerated: 0
-  mineCountText: {fileID: 1147244670}
-  rotationDuration: 0.3
-  faces: []
 --- !u!4 &125800112
 Transform:
   m_ObjectHideFlags: 0
@@ -573,6 +548,32 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &125800116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125800110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe410dee046c59d41addc65bdfa306f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  size: 9
+  mineCount: 100
+  facePrefab: {fileID: 8425874369860984711, guid: 7a15e30d6ca237e4ebfec97490ba9f86, type: 3}
+  cubeParent: {fileID: 0}
+  endPanel: {fileID: 1363469025}
+  resultText: {fileID: 476813961}
+  backgroundMusic: {fileID: 125800113}
+  loseSound: {fileID: 125800115}
+  winSound: {fileID: 125800114}
+  minesGenerated: 0
+  mineCountText: {fileID: 1147244670}
+  rotationDuration: 0.3
+  isRotating: 0
+  faces: []
 --- !u!1 &476813960
 GameObject:
   m_ObjectHideFlags: 0
@@ -707,6 +708,51 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 100}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &608360848
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 608360850}
+  - component: {fileID: 608360849}
+  m_Layer: 0
+  m_Name: RotationController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &608360849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 608360848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dd7d7302763300429d21ce0ba49abaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cubeManager: {fileID: 125800116}
+--- !u!4 &608360850
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 608360848}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1145.7573, y: 538.43274, z: 647.3072}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1405,7 +1451,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 125800111}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: CubeManager, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
@@ -1462,5 +1508,6 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 705507995}
   - {fileID: 125800112}
+  - {fileID: 608360850}
   - {fileID: 48882033}
   - {fileID: 1060828034}

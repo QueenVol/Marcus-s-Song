@@ -296,7 +296,7 @@ public class CubeManager : MonoBehaviour
         }
 
         Vector3 rotAxis = (axis == 0) ? Vector3.right : (axis == 1 ? Vector3.up : Vector3.forward);
-        float targetAngle = clockwise ? 90f : -90f;
+        float targetAngle = clockwise ? -90f : 90f;
         Quaternion startRot = rotationGroup.transform.rotation;
         Quaternion endRot = startRot * Quaternion.AngleAxis(targetAngle, rotAxis);
 

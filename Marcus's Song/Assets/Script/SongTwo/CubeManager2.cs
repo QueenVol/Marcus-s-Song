@@ -304,4 +304,10 @@ public class CubeManager2 : MonoBehaviour
         if (win) winSound.Play(); else loseSound.Play();
         resultText.text = win ? "You Win!" : "Kaboom!";
     }
+
+    public void RestartGame()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
 }
